@@ -30,6 +30,10 @@ class IndividualPricingStrategy
     existing_items << self
   end
 
+  def item
+    @item
+  end
+
   def price
     case @item
     when "A" then 50
@@ -41,8 +45,39 @@ class IndividualPricingStrategy
   end
 end
 
+class MultipleItemDiscountPricingStrategy
+  MULTIPLE_ITEM_DISCOUNTS = { "A" => [3, 130], "B" => [2, 45] }
+      
+  def applies?(item, existing_items)
+    MULTIPLE_ITEM_DISCOUNTS.each do |discounted_item, discount_data|
+      if discounted_item == item
+        quantity = discount_data[0]
+        discounted_price = discount_data[1]
+        individual_items = existing_items.select {|scanned_item| scanned_item.class == IndividualPricingStrategy && scanned_item.item == item} 
+        return true if (individual_items.length == quantity - 1)
+      end
+    end
+    false
+  end
+
+  def scan(item, existing_items)
+    @item = item
+    individual_items = existing_items.select {|scanned_item| scanned_item.class == IndividualPricingStrategy && scanned_item.item == item} 
+    individual_items.each { |individual_item| existing_items.delete(individual_item) } 
+    existing_items << self
+  end
+
+  def price
+    case @item
+    when "A" then 130
+    when "B" then 45
+    else raise "Unknown item"
+    end
+  end
+end
+
 class CheckOut
-  PRICING_STRATEGIES = [IndividualPricingStrategy]
+  PRICING_STRATEGIES = [IndividualPricingStrategy, MultipleItemDiscountPricingStrategy]
 
   def initialize
     @existing_events = []
