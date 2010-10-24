@@ -51,10 +51,9 @@ class MultipleItemDiscountPricingStrategy
   def applies?(item, existing_items)
     MULTIPLE_ITEM_DISCOUNTS.each do |discounted_item, discount_data|
       if discounted_item == item
-        quantity = discount_data[0]
-        discounted_price = discount_data[1]
+        discount_quantity = discount_data[0]
         individual_items = existing_items.select {|scanned_item| scanned_item.class == IndividualPricingStrategy && scanned_item.item == item} 
-        return true if (individual_items.length == quantity - 1)
+        return true if (individual_items.length == discount_quantity - 1)
       end
     end
     false
@@ -68,6 +67,7 @@ class MultipleItemDiscountPricingStrategy
   end
 
   def price
+    # refcator to use contstant hash    
     case @item
     when "A" then 130
     when "B" then 45
