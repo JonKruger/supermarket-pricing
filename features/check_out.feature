@@ -23,5 +23,6 @@ Feature: Checkout
     | "BB"           | 45                   | 2 for 45             |
     | "CCC"          | 60                   |                      |
     | "DDD"          | 45                   |                      |
+    | "BBB"          | 75                   | (2 for 45) + 30      |
     | "BABBAA"       | 175                  | order doesn't matter |
     | ""             | 0                    |                      |
