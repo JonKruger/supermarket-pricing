@@ -19,83 +19,68 @@ Then /^the total price should be the (\d+) of that item$/ do |price|
   @check_out.total.should == price.to_f
 end
 
-
-class IndividualPricingStrategy
-  def applies?(item, existing_items)
-    true
-  end
-
-  def scan(item, existing_items)
-    @item = item
-    existing_items << self
-  end
-
-  def item
-    @item
-  end
-
-  def price
-    case @item
-    when "A" then 50
-    when "B" then 30
-    when "C" then 20
-    when "D" then 15
-    else raise "Unknown item"
-    end
+class Item
+  attr_reader :name, :price, :available_discounts
+  def initialize(name, price, available_discounts = [])
+    @name = name
+    @price = price
+    @available_discounts = available_discounts
   end
 end
 
-class MultipleItemDiscountPricingStrategy
-  MULTIPLE_ITEM_DISCOUNTS = { "A" => [3, 130], "B" => [2, 45] }
-      
-  def applies?(item, existing_items)
-    MULTIPLE_ITEM_DISCOUNTS.each do |discounted_item, discount_data|
-      if discounted_item == item
-        discount_quantity = discount_data[0]
-        individual_items = existing_items.select {|scanned_item| scanned_item.class == IndividualPricingStrategy && scanned_item.item == item} 
-        return true if (individual_items.length == discount_quantity - 1)
-      end
-    end
-    false
-  end
+class ScannedItem 
+  attr_reader :item, :applied_discount
 
-  def scan(item, existing_items)
+  def initialize(item)
     @item = item
-    individual_items = existing_items.select {|scanned_item| scanned_item.class == IndividualPricingStrategy && scanned_item.item == item} 
-    individual_items.each { |individual_item| existing_items.delete(individual_item) } 
-    existing_items << self
   end
 
-  def price
-    # refcator to use contstant hash    
-    case @item
-    when "A" then 130
-    when "B" then 45
-    else raise "Unknown item"
-    end
-  end
-end
-
-class CheckOut
-  PRICING_STRATEGIES = [IndividualPricingStrategy, MultipleItemDiscountPricingStrategy]
-
-  def initialize
-    @existing_events = []
-  end
-
-  def scan(item)
-    PRICING_STRATEGIES.each do |strategy_klass|
-      strategy = strategy_klass.new
-      if strategy.applies?(item, @existing_events)
-        strategy.scan(item, @existing_events)
+  def apply_discounts(all_scanned_items)
+    item.available_discounts.each do |discount|
+      if discount.apply_discount?(item, all_scanned_items)
+        @applied_discount = discount
         return
       end
     end
   end
 
+  def price
+    @applied_discount ? @applied_discount.price : item.price
+  end
+end
+
+class MultipleItemDiscount
+  attr_reader :quantity, :price_for_quantity
+
+  def initialize(quantity, price_for_quantity)
+    @quantity = quantity
+    @price_for_quantity = price_for_quantity
+  end
+
+  def apply_discount?(scanned_item, all_scanned_items)
+    false
+  end
+end
+
+class CheckOut
+  ITEMS = { "A" => Item.new("A", 50, [MultipleItemDiscount.new(3, 130)]),
+            "B" => Item.new("B", 30, [MultipleItemDiscount.new(2, 45)]),
+            "C" => Item.new("C", 20),
+            "D" => Item.new("D", 15) }
+
+  def initialize
+    @scanned_items = []
+  end
+
+  def scan(item_name)
+    item = ScannedItem.new(ITEMS[item_name])
+    @scanned_items << item
+    item.apply_discounts(@scanned_items)
+  end
+
   def total
     total_price = 0
-    @existing_events.each { |event| total_price += event.price }
+    @scanned_items.each { |item| total_price += item.price }
     total_price
   end
 end
