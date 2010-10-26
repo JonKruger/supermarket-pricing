@@ -20,7 +20,7 @@ Feature: Checkout
   Examples:
     | multiple items | expected total price | notes                |
     | "AAA"          | 130                  | 3 for 130            |
-    | "BBB"          | 45                   | 2 for 45             |
+    | "BB"           | 45                   | 2 for 45             |
     | "CCC"          | 60                   |                      |
     | "DDD"          | 45                   |                      |
     | "BABBAA"       | 175                  | order doesn't matter |

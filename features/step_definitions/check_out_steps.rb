@@ -30,22 +30,20 @@ end
 
 class ScannedItem 
   attr_reader :item, :applied_discount
+  attr_accessor :price
 
   def initialize(item)
     @item = item
+    @price = item.price
   end
 
   def apply_discounts(all_scanned_items)
     item.available_discounts.each do |discount|
-      if discount.apply_discount?(item, all_scanned_items)
+      if discount.apply_discount(item, all_scanned_items)
         @applied_discount = discount
         return
       end
     end
-  end
-
-  def price
-    @applied_discount ? @applied_discount.price : item.price
   end
 end
 
@@ -57,8 +55,16 @@ class MultipleItemDiscount
     @price_for_quantity = price_for_quantity
   end
 
-  def apply_discount?(scanned_item, all_scanned_items)
-    false
+  def apply_discount(scanned_item, all_scanned_items)
+    potentially_discounted_items = find_all_scanned_items_of_type_that_do_not_have_multiple_item_discount_applied(scanned_item, all_scanned_items)
+    if (potentially_discounted_items.length == @quantity)
+      unadjusted_price_of_each_item = price_for_quantity / @quantity 
+      potentially_discounted_items.each { |item| item.price = unadjusted_price_of_each_item}
+    end
+  end
+
+  def find_all_scanned_items_of_type_that_do_not_have_multiple_item_discount_applied(scanned_item, all_scanned_items)
+    all_scanned_items.select {|item| item.applied_discount.nil? || item.applied_discount.class != MultipleItemDiscount}
   end
 end
 
