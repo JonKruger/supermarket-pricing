@@ -24,5 +24,17 @@ Feature: Checkout
     | "CCC"          | 60                   |                      |
     | "DDD"          | 45                   |                      |
     | "BBB"          | 75                   | (2 for 45) + 30      |
-    | "BABBAA"       | 175                  | order doesn't matter |
+    | "BABBAA"       | 205                  | order doesn't matter |
     | ""             | 0                    |                      |
+
+  Scenario Outline: Rounding money
+    When rounding "<amount>" to the nearest penny
+    Then it should round it to "<rounded amount>"
+
+    Examples:
+      | amount | rounded amount |
+      | 1      | 1              |
+      | 1.225  | 1.23           |
+      | 1.2251 | 1.23           |
+      | 1.2249 | 1.22           |
+      | 1.22   | 1.22           |

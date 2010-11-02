@@ -19,6 +19,24 @@ Then /^the total price should be the (\d+) of that item$/ do |price|
   @check_out.total.should == price.to_f
 end
 
+When /^rounding "([^"]*)" to the nearest penny$/ do |amount|
+  @rounded_amount = RoundingTester.new.round_money(amount)
+end
+
+Then /^it should round it to "([^"]*)"$/ do |amount|
+  @rounded_amount.should == amount.to_f
+end
+
+module Rounding
+  def round_money(amount)
+    (amount.to_f * 100).round.to_f / 100
+  end
+end
+
+class RoundingTester
+  include Rounding
+end
+
 class Item
   attr_reader :name, :price, :available_discounts
   def initialize(name, price, available_discounts = [])
@@ -52,6 +70,7 @@ class ScannedItem
 end
 
 class MultipleItemDiscount
+  include Rounding
   attr_reader :quantity, :price_for_quantity
 
   def initialize(quantity, price_for_quantity)
@@ -62,9 +81,11 @@ class MultipleItemDiscount
   def apply_discount(scanned_item, all_scanned_items)
     potentially_discounted_items = find_all_scanned_items_of_type_that_do_not_have_multiple_item_discount_applied(scanned_item, all_scanned_items)
     if (potentially_discounted_items.length == @quantity)
-      unadjusted_price_of_each_item = price_for_quantity / quantity 
+      unadjusted_price_of_each_item = round_money(price_for_quantity.to_f / quantity)
       potentially_discounted_items.each { |item| item.price = unadjusted_price_of_each_item}
+      true
     end
+    false
   end
 
   def find_all_scanned_items_of_type_that_do_not_have_multiple_item_discount_applied(scanned_item, all_scanned_items)
@@ -89,9 +110,16 @@ class CheckOut
     item.apply_discounts(@scanned_items)
   end
 
+  def what_do_i_have
+    @scanned_items.each do |item|
+      puts "Scanned item #{item.item_name} at price #{item.price} with #{item.applied_discount ? 'a discount' : 'no discount'}"
+    end
+  end
+
   def total
     total_price = 0
     @scanned_items.each { |item| total_price += item.price }
     total_price
   end
 end
+
