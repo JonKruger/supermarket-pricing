@@ -1,6 +1,6 @@
 Feature: Checkout
 
-  Scenario Outline:
+  Scenario Outline: Checking out individual items
     Given that I have not checked anything out
     When I check out item <item>
     Then the total price should be the <unit price> of that item
@@ -12,7 +12,7 @@ Feature: Checkout
     | "C"  | 20         |
     | "D"  | 15         |
 
-  Scenario Outline:
+  Scenario Outline: Checking out multiple items
     Given that I have not checked anything out
     When I check out <multiple items>
     Then the total price should be the <expected total price> of those items
