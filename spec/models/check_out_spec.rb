@@ -12,14 +12,14 @@ describe "Given that I have not checked anything out" do
       @check_out.total.should == unit_price
     end
   end
-  end
+end
 
-  [["AAA", 130],
-    ["BB", 45],
+  [["AAA", 130], # 3 for 130
+    ["BB", 45],  # 2 for 45
     ["CCC", 60],
     ["DDD", 45],
-    ["BBB", 75],
-    ["BABBAA", 205],
+    ["BBB", 75], # (2 for 45) + 30
+    ["BABBAA", 205], # order doesn't matter
     ["", 0]].each do |items, expected_total_price|
     describe "When I check out multiple items" do
       it "The total price should be the expected total price of those items" do
@@ -29,7 +29,6 @@ describe "Given that I have not checked anything out" do
       end
     end
   end
-
 end
 
 class RoundingTester
