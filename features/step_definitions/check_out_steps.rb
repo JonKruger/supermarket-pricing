@@ -23,7 +23,7 @@ When /^rounding "([^"]*)" to the nearest penny$/ do |amount|
   @rounded_amount = RoundingTester.new.round_money(amount)
 end
 
-Then /^it should round it to "([^"]*)"$/ do |amount|
+Then /^it should round it using midpoint rounding to "([^"]*)"$/ do |amount|
   @rounded_amount.should == amount.to_f
 end
 

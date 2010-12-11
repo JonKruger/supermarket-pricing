@@ -29,7 +29,7 @@ Feature: Checkout
 
   Scenario Outline: Rounding money
     When rounding "<amount>" to the nearest penny
-    Then it should round it to "<rounded amount>"
+    Then it should round it using midpoint rounding to "<rounded amount>"
 
     Examples:
       | amount | rounded amount |
